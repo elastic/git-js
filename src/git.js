@@ -1278,8 +1278,14 @@ const ProgressProcessor = require("./responses/ProgressProcessor").ProgressProce
          command.push("--max-count=" + (opt.n || opt['max-count']));
       }
 
+      if (opt.skip) {
+         command.push('--skip='+ opt.skip);
+      }
+
       if (opt.from && opt.to) {
          command.push(opt.from + rangeOperator + opt.to);
+      } else if (opt.from) {
+         command.push(opt.from)
       }
 
       if (opt.file) {
