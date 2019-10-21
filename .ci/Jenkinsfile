@@ -53,31 +53,31 @@ pipeline {
         }
       }
     }
-    stage('Tests') {
-      parallel {
-        stage('Unit Tests') {
-          // agent { label 'linux && immutable' } Reusing top level build agent
-          options { skipDefaultCheckout() }
-          steps {
-            deleteDir()
-            unstash 'compiledSource'
-            script {
-              withGithubNotify(context: 'Unit Test', tab: 'tests') {
-                docker.image("node:10").inside(){
-                  dir("${BASE_DIR}") {
-                    sh(label: 'Unit Tests', script: 'yarn run test:ci:unit')
-                  }
-                }
+    stage('Unit Tests') {
+      // agent { label 'linux && immutable' } Reusing top level build agent
+      options { skipDefaultCheckout() }
+      steps {
+        deleteDir()
+        unstash 'compiledSource'
+        script {
+          withGithubNotify(context: 'Unit Test', tab: 'tests') {
+            docker.image("node:10").inside(){
+              dir("${BASE_DIR}") {
+                sh(label: 'Unit Tests', script: 'yarn run test:ci:unit')
               }
             }
           }
-          post {
-            always {
-              junit(allowEmptyResults: true, keepLongStdio: true, testResults: "**/TEST-unit.xml")
-            }
-          }
         }
-        stage('Integration Tests') {
+      }
+      post {
+        always {
+          junit(allowEmptyResults: true, keepLongStdio: true, testResults: "**/TEST-unit.xml")
+        }
+      }
+    }
+    stage('Integration Tests') {
+      parallel {
+        stage('Linux') {
           // agent { label 'linux && immutable' } Reusing top level build agent
           options { skipDefaultCheckout() }
           steps {
