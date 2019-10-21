@@ -99,6 +99,33 @@ pipeline {
             }
           }
         }
+        stage('Windows') {
+          agent { label 'windows-2019-immutable' }
+          options { skipDefaultCheckout() }
+          environment {
+            PATH="${PATH};C:\\Program Files\\nodejs;C:\\Program Files (x86)\\Yarn\\bin"
+          }
+          steps {
+            deleteDir()
+            unstash 'source'
+            dir(BASE_DIR) {
+              powershell label: 'Install tools', script: ".\\.ci\\scripts\\windows\\install-node.ps1"
+              bat label: 'Yarn Install', script: 'yarn install --ignore-scripts'
+              bat label: 'Build', script: 'node scripts/build.js'
+              bat label: 'Yarn Install', script: 'yarn install --frozen-lockfile'
+              bat label: 'Tool versions', script: '''
+                npm --version
+                node --version
+              '''
+              bat label: 'Integration tests', script: 'yarn run test:ci:integration'
+            }
+          }
+          post {
+            always {
+              junit(allowEmptyResults: true, keepLongStdio: true, testResults: "**/TEST-integration.xml")
+            }
+          }
+        }
       }
     }
     stage('Deploy') {
