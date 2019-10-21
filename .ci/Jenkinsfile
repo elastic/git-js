@@ -78,7 +78,7 @@ pipeline {
           }
         }
         stage('Integration Tests') {
-          agent { label 'linux && immutable' }
+          // agent { label 'linux && immutable' } Reusing top level build agent
           options { skipDefaultCheckout() }
           steps {
             deleteDir()
